@@ -1,0 +1,75 @@
+@host = http://localhost:8080
+
+### Create an expense (stores the id for the requests below)
+POST {{host}}/api/expenses
+Content-Type: application/json
+
+{
+  "description": "Groceries",
+  "amount": 54.30,
+  "category": "FOOD",
+  "date": "2026-11-10"
+}
+
+> {%
+    client.test("Created", () => client.assert(response.status === 201, "Expected 201"));
+    client.global.set("id", response.body.id);
+%}
+
+### Create another expense
+POST {{host}}/api/expenses
+Content-Type: application/json
+
+{
+  "description": "Monthly bus pass",
+  "amount": 99.00,
+  "category": "TRANSPORT",
+  "date": "2026-11-01"
+}
+
+### List all expenses
+GET {{host}}/api/expenses
+
+### Filter by category
+GET {{host}}/api/expenses?category=FOOD
+
+### Get one expense
+GET {{host}}/api/expenses/{{id}}
+
+### Update an expense
+PUT {{host}}/api/expenses/{{id}}
+Content-Type: application/json
+
+{
+  "description": "Groceries (weekly)",
+  "amount": 61.75,
+  "category": "FOOD",
+  "date": "2026-11-10"
+}
+
+### Delete an expense
+DELETE {{host}}/api/expenses/{{id}}
+
+### --- Error cases ---
+
+### 404: unknown id
+GET {{host}}/api/expenses/999999
+
+### 400: validation errors (blank description, negative amount, missing category, future date)
+POST {{host}}/api/expenses
+Content-Type: application/json
+
+{
+  "description": "",
+  "amount": -5,
+  "date": "2999-01-01"
+}
+
+### 400: unknown category in query
+GET {{host}}/api/expenses?category=CARS
+
+### 400: malformed JSON
+POST {{host}}/api/expenses
+Content-Type: application/json
+
+{ "description": "oops"
